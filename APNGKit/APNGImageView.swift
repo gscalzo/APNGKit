@@ -31,7 +31,7 @@
 #elseif os(iOS) || os(watchOS) || os(tvOS)
     import UIKit
     public typealias APNGView = UIView
-    typealias CocoaImage = UIImage
+    public typealias CocoaImage = UIImage
 #endif
     
 @objc public protocol APNGImageViewDelegate {

@@ -34,7 +34,7 @@
 *  Represents a frame in an APNG file. 
 *  It contains a whole IDAT chunk data for a PNG image.
 */
-class Frame {
+public class Frame {
     
     static var allocCount = 0
     static var deallocCount = 0
@@ -47,25 +47,36 @@ class Frame {
     
     private var cleaned = false
     
-    var image: CocoaImage? {
-        let unusedCallback: CGDataProviderReleaseDataCallback = { optionalPointer, pointer, valueInt in }
-        guard let provider = CGDataProvider(dataInfo: nil, data: bytes, size: length, releaseData: unusedCallback) else {
+    public var originalImage: CocoaImage?
+    public var image: CocoaImage?
+    
+    func updateImage() {
+        func createImage() -> CocoaImage? {
+            
+            let unusedCallback: CGDataProviderReleaseDataCallback = { optionalPointer, pointer, valueInt in }
+            guard let provider = CGDataProvider(dataInfo: nil, data: bytes, size: length, releaseData: unusedCallback) else {
+                return nil
+            }
+            
+            if let imageRef = CGImage(width: width,
+                                      height: height,
+                                      bitsPerComponent: bits,
+                                      bitsPerPixel: bits * 4,
+                                      bytesPerRow: bytesInRow, space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: [CGBitmapInfo.byteOrder32Big, CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue)],
+                                      provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
+            {
+                #if os(macOS)
+                    return NSImage(cgImage: imageRef, size: NSSize(width: width, height: height))
+                #else
+                    return UIImage(cgImage: imageRef, scale: scale, orientation: .up)
+                #endif
+            }
             return nil
         }
-        
-        if let imageRef = CGImage(width: width, height: height, bitsPerComponent: bits, bitsPerPixel: bits * 4, bytesPerRow: bytesInRow, space: CGColorSpaceCreateDeviceRGB(),
-                                  bitmapInfo: [CGBitmapInfo.byteOrder32Big, CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue)],
-                                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
-        {
-            #if os(macOS)
-                return NSImage(cgImage: imageRef, size: NSSize(width: width, height: height))
-            #else
-                return UIImage(cgImage: imageRef, scale: scale, orientation: .up)
-            #endif
-        }
-        return nil
+        image = createImage()
+        originalImage = image
     }
-    
     /// Data chunk.
     var bytes: UnsafeMutablePointer<UInt8>
     
@@ -113,7 +124,7 @@ class Frame {
 }
 
 extension Frame: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         return "<Frame: \(self.bytes)))> duration: \(self.duration), length: \(length)"
     }
 }
@@ -131,7 +142,7 @@ extension Frame: CustomDebugStringConvertible {
         return nil
     }
     
-    var debugDescription: String {
+    public var debugDescription: String {
         return "\(description)\ndata: \(String(describing: data))"
     }
 }

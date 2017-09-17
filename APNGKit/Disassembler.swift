@@ -226,7 +226,9 @@ class Disassembler {
             }
         }
         
-        defer { currentFrame = nextFrame }
+        defer {
+            currentFrame = nextFrame
+        }
         return currentFrame
     }
     
@@ -460,7 +462,7 @@ extension Disassembler: IteratorProtocol {
         } else {
             result = readNextFrame()
         }
-        
+        result?.updateImage()
         if result == nil { clean() }
         return result
     }
