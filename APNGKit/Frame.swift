@@ -97,7 +97,7 @@ public class Frame {
     /// How many bytes in a row. Regularly it is width * (bitDepth / 2)
     let bytesInRow: Int
     
-    var duration: TimeInterval = 0
+    public var duration: TimeInterval = 0
     
     init(length: UInt32, bytesInRow: UInt32) {
         self.length = Int(length)
